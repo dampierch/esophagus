@@ -26,28 +26,27 @@ main <- function() {
     ## make plots
     ggp <- lapply(dfs, ggp_box, 0.1)
     ggp2 <- lapply(dfs2, ggp_box)
-
-    target <- paste0(pvars$proj_dir, "negatives.pdf")
+    target <- paste0(pvars$proj_dir, "neg_wells.pdf")
     ggp_write(ggp, target, nrow=3, ncol=4, ht=9, wd=12)
-    target <- paste0(pvars$proj_dir, "negatives2.pdf")
+    target <- paste0(pvars$proj_dir, "neg_means.pdf")
     ggp_write(ggp2, target, nrow=3, ncol=4, ht=9, wd=12)
     invisible(
         lapply(seq.int(from=1, to=length(ggp), by=2), FUN <- function(i) {
             title <- sub(" ", "_", tolower(ggp[[i]]$labels$title))
-            target <- paste0(pvars$proj_dir, "neg_", title, ".pdf")
+            target <- paste0(pvars$proj_dir, "neg_wells_", title, ".pdf")
             ggp_write(ggp[i:(i + 1)], target)
         })
     )
     invisible(
         lapply(seq.int(from=1, to=length(ggp2), by=2), FUN <- function(i) {
             title <- sub(" ", "_", tolower(ggp2[[i]]$labels$title))
-            target <- paste0(pvars$proj_dir, "neg2_", title, ".pdf")
+            target <- paste0(pvars$proj_dir, "neg_means_", title, ".pdf")
             ggp_write(ggp2[i:(i + 1)], target)
         })
     )
 
     ## make table
-    target <- paste0(pvars$proj_dir, "pval_neg.tsv")
+    target <- paste0(pvars$proj_dir, "neg_pvals.tsv")
     write_gee(sums, target)
 }
 

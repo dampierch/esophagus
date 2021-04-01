@@ -33,8 +33,9 @@ fit_gee <- function(data) {
             cat("testing tri alleleic site\n")
             levs <- levels(factor(data$allele))
             fit1 <- gee_multi_plate(data, levs)
-            fit2 <- gee_multi_plate(data, rev(levs))
-            fit <- setNames(list(fit1, fit2), c("default", "reversed"))
+            idx <- data$allele %in% levs[2:3]
+            fit2 <- gee_multi_plate(data[idx, ], levs[2:3])
+            fit <- setNames(list(fit1, fit2), c("default", "extra"))
         } else {
             cat("testing bi alleleic site\n")
             levs <- levels(factor(data$allele))
@@ -46,8 +47,9 @@ fit_gee <- function(data) {
             cat("testing tri alleleic site\n")
             levs <- levels(factor(data$allele))
             fit1 <- gee_single_plate(data, levs)
-            fit2 <- gee_single_plate(data, rev(levs))
-            fit <- setNames(list(fit1, fit2), c("default", "reversed"))
+            idx <- data$allele %in% levs[2:3]
+            fit2 <- gee_single_plate(data[idx, ], levs[2:3])
+            fit <- setNames(list(fit1, fit2), c("default", "extra"))
         } else {
             cat("testing bi alleleic site\n")
             levs <- levels(factor(data$allele))
@@ -59,22 +61,17 @@ fit_gee <- function(data) {
 
 fit_parser <- function(fit) {
     df <- summary(fit)$coefficients
-    df <- df[2:nrow(df), "Pr(>|W|)", drop=FALSE]
-    colnames(df) <- "pval"
-    df$locus_cell <- paste(unname(unlist(
+    df <- df[2:nrow(df), ]
+    colnames(df) <- c("Effect", "SE", "Wald_Stat", "pval")
+    df$Locus_Cell <- paste(unname(unlist(
         fit$data[1, c("locus", "orientation", "cell_line")]
     )), collapse="_")
-    df$alleles <- paste(levels(
-        fit$model[ , "factor(allele, levels = levels)"]
-    ), collapse="_")
-    df$ref <- unlist(lapply(strsplit(df$alleles, "_"), "[[", 1))
-    df$alt <- unlist(lapply(strsplit(rownames(df), ")"), "[[", 2))
-    df$label <- paste(
-        paste(df$locus_cell, df$alleles, sep="_"),
-        paste(df$ref, df$alt, sep="_"),
-        sep="::"
+    df$Ref <- levels(fit$model[ , "factor(allele, levels = levels)"])[1]
+    df$Alt <- unlist(lapply(strsplit(rownames(df), ")"), "[[", 2))
+    df$Label <- paste(df$Locus_Cell, paste(df$Ref, df$Alt, sep="_"), sep="::")
+    col_order <- c(
+        "Label", "Locus_Cell", "Ref", "Alt", "Effect", "SE", "Wald_Stat", "pval"
     )
-    col_order <- c("label", "locus_cell", "alleles", "ref", "alt", "pval")
     df <- df[col_order]
     return(df)
 }

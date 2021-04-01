@@ -57,18 +57,51 @@ fit_gee <- function(data) {
     return(fit)
 }
 
+fit_parser <- function(fit) {
+    df <- summary(fit)$coefficients
+    df <- df[2:nrow(df), "Pr(>|W|)", drop=FALSE]
+    colnames(df) <- "pval"
+    df$locus_cell <- paste(unname(unlist(
+        fit$data[1, c("locus", "orientation", "cell_line")]
+    )), collapse="_")
+    df$alleles <- paste(levels(
+        fit$model[ , "factor(allele, levels = levels)"]
+    ), collapse="_")
+    df$ref <- unlist(lapply(strsplit(df$alleles, "_"), "[[", 1))
+    df$alt <- unlist(lapply(strsplit(rownames(df), ")"), "[[", 2))
+    df$label <- paste(
+        paste(df$locus_cell, df$alleles, sep="_"),
+        paste(df$ref, df$alt, sep="_"),
+        sep="::"
+    )
+    col_order <- c("label", "locus_cell", "alleles", "ref", "alt", "pval")
+    df <- df[col_order]
+    return(df)
+}
+
 parse_gee <- function(fit) {
     if (class(fit)[1] == "list") {
         cat("extracting coefficient summary for tri alleleic site\n")
-        df <- lapply(fit, FUN <- function(x) {
-            df <- summary(x)$coefficients
-            df <- df[2:nrow(df), "Pr(>|W|)", drop=FALSE]
-            return(df)
-        })
+        df <- lapply(fit, fit_parser)
     } else {
         cat("extracting coefficient summary for bi alleleic site\n")
-        df <- summary(fit)$coefficients
-        df <- df[2:nrow(df), "Pr(>|W|)", drop=FALSE]
+        df <- fit_parser(fit)
     }
     return(df)
+}
+
+write_gee <- function(sums, target) {
+    obj <- lapply(sums, FUN <- function(sum) {
+        if (class(sum) == "list") {
+            df <- do.call(rbind, sum)
+        } else {
+            df <- sum
+        }
+        return(df)
+    })
+    df <- do.call(rbind, obj)
+    write.table(
+        df, file=target, quote=FALSE, sep="\t", row.names=FALSE, col.names=TRUE
+    )
+    cat("table written to", target, "\n")
 }

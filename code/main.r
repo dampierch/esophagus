@@ -24,7 +24,7 @@ main <- function() {
     dfs2 <- lapply(dfs, summarise_data)
 
     ## make plots
-    ggp <- lapply(dfs, ggp_box)
+    ggp <- lapply(dfs, ggp_box, 0.1)
     ggp2 <- lapply(dfs2, ggp_box)
 
     target <- paste0(pvars$proj_dir, "negatives.pdf")
@@ -46,15 +46,9 @@ main <- function() {
         })
     )
 
-    ## make annotated plots
-    # ggp <- lapply(seq_len(length(dfs)), FUN <- function(i) {
-    #     if (length(levels(factor(dfs[[i]]$allele))) > 2) {
-    #         ggp <- ggp_box_triallele(dfs[[i]], sums[[i]])
-    #     } else {
-    #         ggp <- ggp_box_biallele(dfs[[i]], sums[[i]])
-    #     }
-    #     return(ggp)
-    # })
+    ## make table
+    target <- paste0(pvars$proj_dir, "pval_neg.tsv")
+    write_gee(sums, target)
 }
 
 main()

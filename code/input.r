@@ -28,15 +28,15 @@ get_data <- function(target) {
 
 summarise_data <- function(df) {
     ## use dplyr to summarize data by clone_id
-    df <- df %>% group_by(clone_id) %>% summarise(
+    df <- df %>% group_by(plate_id, clone_id) %>% summarise(
         locus=first(locus),
         rsid=first(rsid),
         orientation=first(orientation),
         gene=first(gene),
         cell_line=first(cell_line),
-        plate_id=first(plate_id),
         allele=first(allele),
-        rel_lum=mean(rel_lum)
+        rel_lum=mean(rel_lum),
+        .groups="keep"
     )
     return(df)
 }

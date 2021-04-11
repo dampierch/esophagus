@@ -1,21 +1,27 @@
+## usage: Rscript main.r <data_file> <out_prefix> <trans>
+
 library(readr)
 library(dplyr)
 library(geepack)
 library(ggplot2)
 library(cowplot)
+library(scales)
 
 source("input.r")
 source("gee.r")
 source("ggp_themes.r")
 source("plot.r")
 
-main <- function() {
+main <- function(args) {
 
     ## set project variables
     pvars <- list()
-    pvars$proj_dir <- "/home/chd5n/projects/esophagus/"
+    pvars$proj_dir <- "../"
     pvars$data_dir <- paste0(pvars$proj_dir, "data/")
-    pvars$data_name <- paste0(pvars$data_dir, "negatives.tsv")
+    pvars$data_file <- ifelse(is.na(args[2]), "negatives.tsv", args[2])
+    pvars$out_prefix <- ifelse(is.na(args[3]), "neg", args[3])
+    pvars$data_name <- paste0(pvars$data_dir, pvars$data_file)
+    pvars$trans <- ifelse(is.na(args[4]), NA, args[4])
 
     ## parse data
     dfs <- get_data(pvars$data_name)
@@ -24,30 +30,56 @@ main <- function() {
     dfs2 <- lapply(dfs, summarise_data)
 
     ## make plots
-    ggp <- lapply(dfs, ggp_box, 0.1)
-    ggp2 <- lapply(dfs2, ggp_box)
-    target <- paste0(pvars$proj_dir, "neg_wells.pdf")
-    ggp_write(ggp, target, nrow=3, ncol=4, ht=9, wd=12)
-    target <- paste0(pvars$proj_dir, "neg_means.pdf")
-    ggp_write(ggp2, target, nrow=3, ncol=4, ht=9, wd=12)
+    if (pvars$out_prefix == "neg") {
+        ggp <- lapply(dfs, ggp_box, 0.1)
+        ggp2 <- lapply(dfs2, ggp_box)
+    } else {
+        ggp <- lapply(dfs, ggp_box, 0.1, 0, pvars$trans)
+        ggp2 <- lapply(dfs2, ggp_box, 0.1, 0, pvars$trans)
+    }
+    target <- paste0(pvars$proj_dir, pvars$out_prefix, "_wells.pdf")
+    if (pvars$out_prefix == "neg") {
+        ggp_write(ggp, target, nrow=3, ncol=4, ht=9, wd=12)
+    } else {
+        ggp_write(ggp, target, nrow=1, ncol=4, ht=3, wd=12)
+    }
+    target <- paste0(pvars$proj_dir, pvars$out_prefix, "_means.pdf")
+    if (pvars$out_prefix == "neg") {
+        ggp_write(ggp2, target, nrow=3, ncol=4, ht=9, wd=12)
+    } else {
+        ggp_write(ggp2, target, nrow=1, ncol=4, ht=3, wd=12)
+    }
     invisible(
         lapply(seq.int(from=1, to=length(ggp), by=2), FUN <- function(i) {
             title <- sub(" ", "_", tolower(ggp[[i]]$labels$title))
-            target <- paste0(pvars$proj_dir, "neg_wells_", title, ".pdf")
-            ggp_write(ggp[i:(i + 1)], target)
+            target <- paste0(
+                pvars$proj_dir, pvars$out_prefix, "_wells_", title, ".pdf"
+            )
+            if (pvars$out_prefix == "neg") {
+                ggp_write(ggp[i:(i + 1)], target)
+            } else {
+                ggp_write(ggp[i:(i + 1)], target, nrow=1, ncol=2, ht=3.5, wd=7)
+            }
         })
     )
     invisible(
         lapply(seq.int(from=1, to=length(ggp2), by=2), FUN <- function(i) {
             title <- sub(" ", "_", tolower(ggp2[[i]]$labels$title))
-            target <- paste0(pvars$proj_dir, "neg_means_", title, ".pdf")
-            ggp_write(ggp2[i:(i + 1)], target)
+            target <- paste0(
+                pvars$proj_dir, pvars$out_prefix, "_means_", title, ".pdf"
+            )
+            if (pvars$out_prefix == "neg") {
+                ggp_write(ggp2[i:(i + 1)], target)
+            } else {
+                ggp_write(ggp2[i:(i + 1)], target, nrow=1, ncol=2, ht=3.5, wd=7)
+            }
         })
     )
 
     ## make table
-    target <- paste0(pvars$proj_dir, "neg_pvals.tsv")
+    target <- paste0(pvars$proj_dir, pvars$out_prefix, "_pvals.tsv")
     write_gee(sums, target)
 }
 
-main()
+args <- commandArgs(trailingOnly=TRUE)
+main(args)

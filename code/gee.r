@@ -66,13 +66,15 @@ fit_parser <- function(fit) {
     df$Locus_Cell <- paste(unname(unlist(
         fit$data[1, c("locus", "orientation", "cell_line")]
     )), collapse="_")
-    df$Ref <- levels(fit$model[ , "factor(allele, levels = levels)"])[1]
-    df$Alt <- unlist(lapply(strsplit(rownames(df), ")"), "[[", 2))
-    df$Label <- paste(df$Locus_Cell, paste(df$Ref, df$Alt, sep="_"), sep="::")
+    df$A1 <- levels(fit$model[ , "factor(allele, levels = levels)"])[1]
+    df$A2 <- unlist(lapply(strsplit(rownames(df), ")"), "[[", 2))
+    df$Label <- paste(df$Locus_Cell, paste(df$A1, df$A2, sep="_"), sep="::")
     col_order <- c(
-        "Label", "Locus_Cell", "Ref", "Alt", "Effect", "SE", "Wald_Stat", "pval"
+        "Label", "Locus_Cell", "A1", "A2", "Effect", "SE", "Wald_Stat", "pval"
     )
     df <- df[col_order]
+    i <- suppressWarnings(which(is.na(as.numeric(df$A2))))
+    df <- df[i, ]
     return(df)
 }
 

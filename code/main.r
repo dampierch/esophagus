@@ -1,4 +1,6 @@
-## usage: Rscript main.r <data_file> <out_prefix> <trans>
+## usage: Rscript main.r --args <data_file> <out_prefix> <trans>
+##        Rscript main.r --args positives.tsv pos log2
+##        Rscript main.r
 
 library(readr)
 library(dplyr)

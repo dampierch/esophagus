@@ -39,3 +39,10 @@ ggp_theme_default <- theme(
     strip.text=element_text(colour="white")
 
 )
+
+ggp_theme_legend <- ggp_theme_default +
+    theme(
+        legend.title=element_text(size=10),
+        legend.position=c(0.07, 0.1),
+        legend.justification=c(0, 0)
+    )

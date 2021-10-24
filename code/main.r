@@ -1,5 +1,6 @@
 ## usage: Rscript main.r --args <data_file> <out_prefix> <trans>
-##        Rscript main.r --args positives.tsv pos log2
+##                              <shape> <legend>
+##        Rscript main.r --args positives.tsv pos log2 old TRUE
 ##        Rscript main.r
 
 library(readr)
@@ -24,6 +25,8 @@ main <- function(args) {
     pvars$out_prefix <- ifelse(is.na(args[3]), "neg", args[3])
     pvars$data_name <- paste0(pvars$data_dir, pvars$data_file)
     pvars$trans <- ifelse(is.na(args[4]), NA, args[4])
+    pvars$shape <- ifelse(is.na(args[5]), NA, args[5])
+    pvars$legend <- as.logical(args[6])
 
     ## parse data
     dfs <- get_data(pvars$data_name)
@@ -36,8 +39,12 @@ main <- function(args) {
         ggp <- lapply(dfs, ggp_box, 0.1)
         ggp2 <- lapply(dfs2, ggp_box)
     } else {
-        ggp <- lapply(dfs, ggp_box, 0.1, 0, pvars$trans)
-        ggp2 <- lapply(dfs2, ggp_box, 0.1, 0, pvars$trans)
+        ggp <- lapply(dfs, ggp_box, 0.1, 0, pvars$trans, pvars$shape,
+            pvars$legend
+        )
+        ggp2 <- lapply(dfs2, ggp_box, 0.1, 0, pvars$trans, pvars$shape,
+            pvars$legend
+        )
     }
     target <- paste0(pvars$proj_dir, pvars$out_prefix, "_wells.pdf")
     if (pvars$out_prefix == "neg") {

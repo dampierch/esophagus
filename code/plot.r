@@ -1,6 +1,6 @@
 ## to be sourced from main analysis script
 
-ggp_box <- function(data, jwd=0, jht=0, trans=NA) {
+ggp_box <- function(data, jwd=0, jht=0, trans=NA, sh=NA, leg=FALSE) {
     ## relative luminescence is lum of putative element divided by lum of neg
     ## y-axis should include interval from 0 to 1 to show inactive
     ## y-axis is easier to interpret if not log transformed
@@ -10,12 +10,13 @@ ggp_box <- function(data, jwd=0, jht=0, trans=NA) {
     ggp_ylab <- "Relative Luminescence"
     ggp_legend <- "Experiment"
     ggp_shape <- c(16, 15, 17)
+    if (!is.na(sh)) ggp_shape <- c(1, 3, 4)
     ggp <- ggplot(data, aes(x=allele, y=rel_lum)) +
         geom_boxplot(outlier.size=-1, width=0.3) +
-        stat_summary(
-            fun=mean, geom="point", shape=23, size=5, color=muted("red"),
-            fill=muted("red")
-        ) +
+#        stat_summary(
+#            fun=mean, geom="point", shape=23, size=5, color=muted("red"),
+#            fill=muted("red")
+#        ) +
         geom_point(
             aes(shape=factor(plate_id)), size=2, alpha=0.5, stroke=1,
             position=position_jitter(width=jwd, height=jht)
@@ -36,6 +37,7 @@ ggp_box <- function(data, jwd=0, jht=0, trans=NA) {
                 trans=trans, limits=c(0.9, max(data$rel_lum) * 1.1)
             )
     }
+    if (leg) ggp <- ggp + labs(shape=ggp_legend) + ggp_theme_legend
     return(ggp)
 }
 
